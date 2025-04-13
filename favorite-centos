@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# The alias definition to add
+alias_definition='alias lss='\''lsd -lah && total=$(find . -mindepth 1 -maxdepth 1 | wc -l); hidden=$(find . -mindepth 1 -maxdepth 1 -name ".*" ! -name "." ! -name ".." | wc -l); dirs=$(find . -mindepth 1 -maxdepth 1 -type d | wc -l); allsz=$(du -sh . | cut -f1); filesz=$(find . -mindepth 1 -maxdepth 1 -type f -print0 | du --files0-from=- -ch 2>/dev/null | tail -n1 | awk '\''{print $1}'\''); echo "Total Entries: $total - Hidden Entries: $hidden - Folders: $dirs - All Size: $allsz - Files Size: $filesz"'\'''
+
+# The file to modify
+bashrc="$HOME/.bashrc"
+
+# Check if the alias is already present
+if grep -Fxq "$alias_definition" "$bashrc"; then
+  echo "Alias 'lss' already exists in $bashrc"
+else
+  # Append it
+  echo "" >> "$bashrc"
+  echo "# Added by lss installer script" >> "$bashrc"
+  echo "$alias_definition" >> "$bashrc"
+  echo "Alias 'lss' added to $bashrc"
+fi
