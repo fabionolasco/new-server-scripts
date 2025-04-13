@@ -1,18 +1,48 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# The alias definition to add
+# 1. Install prerequisites
+sudo dnf install -y epel-release dnf-utils
+
+# 2. Install Git
+sudo dnf install -y git
+# Git has no service to start
+
+# 3. Install Node.js (latest current release via NodeSource for EL9)
+curl -fsSL https://rpm.nodesource.com/setup_current.x | sudo bash -
+sudo dnf install -y nodejs
+
+# 4. Install PM2
+sudo npm install -g pm2
+pm2 startup systemd -u "$(whoami)" --hp "$HOME"
+
+# 5. Install NGINX
+sudo dnf install -y nginx
+sudo systemctl enable --now nginx
+
+# 6. Install and configure firewalld
+sudo dnf install -y firewalld
+sudo systemctl enable --now firewalld
+
+# 7. Open ports and reload
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --permanent --add-port=3000/tcp
+sudo firewall-cmd --reload
+
+# 8. Add alias to ~/.bashrc
+bashrc="$HOME/.bashrc"
 alias_definition='alias lss='\''lsd -lah && total=$(find . -mindepth 1 -maxdepth 1 | wc -l); hidden=$(find . -mindepth 1 -maxdepth 1 -name ".*" ! -name "." ! -name ".." | wc -l); dirs=$(find . -mindepth 1 -maxdepth 1 -type d | wc -l); allsz=$(du -sh . | cut -f1); filesz=$(find . -mindepth 1 -maxdepth 1 -type f -print0 | du --files0-from=- -ch 2>/dev/null | tail -n1 | awk '\''{print $1}'\''); echo "Total Entries: $total - Hidden Entries: $hidden - Folders: $dirs - All Size: $allsz - Files Size: $filesz"'\'''
 
-# The file to modify
-bashrc="$HOME/.bashrc"
-
-# Check if the alias is already present
-if grep -Fxq "$alias_definition" "$bashrc"; then
-  echo "Alias 'lss' already exists in $bashrc"
-else
-  # Append it
-  echo "" >> "$bashrc"
-  echo "# Added by lss installer script" >> "$bashrc"
-  echo "$alias_definition" >> "$bashrc"
+if ! grep -Fxq "$alias_definition" "$bashrc"; then
+  {
+    echo ""
+    echo "# Added by install script on $(date)"
+    echo "$alias_definition"
+  } >> "$bashrc"
   echo "Alias 'lss' added to $bashrc"
+else
+  echo "Alias 'lss' already exists in $bashrc"
 fi
+
+echo "Done! Run 'source ~/.bashrc' to activate the alias."
