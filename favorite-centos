@@ -45,4 +45,4 @@ else
   echo "Alias 'lss' already exists in $bashrc"
 fi
 
-echo "Done! Run 'source ~/.bashrc' to activate the alias."
+source ~/.bashrc
